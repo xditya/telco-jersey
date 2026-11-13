@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Telco Orcas · Admin</title>
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 26'%3E%3Cpath d='M5 20C9 15 12 8 11 1C16 8 21 15 26 20Z' fill='%23D81B7A'/%3E%3Cpath d='M1 22Q6 19 11 22T21 22T29 22' fill='none' stroke='%230F97AC' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF2F3; --surface: #F9FBFB; --sunk: #E3E9EB;
+  --line: #D3DCDF; --line-2: #B9C6CA; --line-3: #8FA2A8;
+  --ink: #0B1A1F; --muted: #42575E; --teal: #0F97AC; --navy: #003C51;
+  --magenta: #D81B7A; --magenta-hi: #B8156A; --bad: #B42318;
+  --r: 4px;
+  --display: "Teko", "Arial Narrow", sans-serif;
+  --body: "Saira", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--body); }
+h1, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
+@media (min-width: 960px) { .wrap { padding: 48px 32px 96px; } }
+
+.kicker { display: flex; align-items: center; gap: 10px; font: 600 13px/1 var(--body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.kicker svg { width: 24px; flex: none; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px; margin-top: 12px; }
+h1 { font: 700 clamp(56px, 7vw, 80px)/0.82 var(--display); text-transform: uppercase; letter-spacing: 0.01em; }
+.actions { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; height: 44px; padding: 2px 20px 0; border-radius: var(--r);
+  font: 600 15px/1 var(--body); text-decoration: none; cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.btn-primary { background: var(--magenta); color: #FFFBFD; border: 0; }
+.btn-primary:hover { background: var(--magenta-hi); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
+.btn-ghost:hover { border-color: var(--line-3); background: var(--surface); }
+
+.totals { margin: 40px 0 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow: hidden; }
+.totals div { padding: 12px 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 -1px -1px 0; }
+.totals dt { font: 600 12px/1 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.totals dd { margin: 6px 0 0; font: 600 34px/1 var(--display); }
+.totals .all { background: var(--ink); color: #F4F7F8; }
+.totals .all dt { color: var(--teal); }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.bar label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.bar input {
+  width: min(100%, 360px); height: 44px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); font: 500 16px var(--body);
+}
+.bar input:hover { border-color: var(--line-3); }
+.state { font-size: 14px; color: var(--muted); }
+.state[data-tone="bad"] { color: var(--bad); }
+
+.table-wrap { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; }
+table { width: 100%; min-width: 760px; border-collapse: collapse; }
+th {
+  position: sticky; top: 0; padding: 12px 16px; text-align: left; background: var(--sunk); border-bottom: 1px solid var(--line-2);
+  font: 600 12px/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+td { padding: 10px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: rgba(15, 151, 172, 0.06); }
+.num { font: 600 26px/1 var(--display); padding-top: 13px; color: var(--magenta); }
+.print { font: 600 22px/1 var(--display); letter-spacing: 0.06em; padding-top: 12px; }
+.uid { letter-spacing: 0.04em; }
+.when { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.empty td { padding: 32px 16px; text-align: center; color: var(--muted); white-space: normal; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="kicker">
+    <svg viewBox="0 0 30 26" aria-hidden="true"><path d="M5 20C9 15 12 8 11 1C16 8 21 15 26 20Z" fill="#D81B7A"/><path d="M1 22Q6 19 11 22T21 22T29 22" fill="none" stroke="#0F97AC" stroke-width="2.4" stroke-linecap="round"/></svg>
+    Telco Orcas · Admin
+  </p>
+  <div class="head">
+    <h1>Registrations</h1>
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" id="refresh">Refresh</button>
+      <a class="btn btn-primary" href="/api/export" download>Download CSV</a>
+    </div>
+  </div>
+
+  <dl class="totals" id="totals" aria-label="Jerseys per size"></dl>
+
+  <div class="bar">
+    <label for="q">Search registrations</label>
+    <input type="search" id="q" placeholder="Search name, UID or number" autocomplete="off">
+    <p class="state" id="state" role="status">Loading…</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">No.</th><th scope="col">Name on jersey</th><th scope="col">Size</th><th scope="col">Full name</th><th scope="col">UID</th><th scope="col">Submitted (IST)</th><th scope="col">Last edited</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let all = [];
+
+const cell = (text, cls) => Object.assign(document.createElement('td'), { textContent: text, className: cls ?? '' });
+
+function setState(text, tone) {
+  $('state').textContent = text;
+  $('state').dataset.tone = tone ?? '';
+}
+
+function renderTotals() {
+  const counts = new Map();
+  for (const r of all) counts.set(r.size, (counts.get(r.size) ?? 0) + 1);
+  const sizes = [...counts.keys()].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const item = (label, value, cls) => {
+    const d = document.createElement('div');
+    d.className = cls ?? '';
+    d.append(Object.assign(document.createElement('dt'), { textContent: label }), Object.assign(document.createElement('dd'), { textContent: value }));
+    return d;
+  };
+  $('totals').replaceChildren(item('Total', all.length, 'all'), ...sizes.map((s) => item(s, counts.get(s))));
+}
+
+function renderRows() {
+  const q = $('q').value.trim().toLowerCase();
+  const shown = q
+    ? all.filter((r) => [r.uid, r.name, r.jersey_name, String(r.jersey_number)].some((v) => v.toLowerCase().includes(q)))
+    : all;
+  const trs = shown.map((r) => {
+    const tr = document.createElement('tr');
+    tr.append(
+      cell(r.jersey_number, 'num'), cell(r.jersey_name, 'print'), cell(r.size), cell(r.name),
+      cell(r.uid, 'uid'), cell(r.submitted, 'when'), cell(r.edited === r.submitted ? '—' : r.edited, 'when'),
+    );
+    return tr;
+  });
+  if (!trs.length) {
+    const tr = document.createElement('tr');
+    tr.className = 'empty';
+    tr.append(Object.assign(cell(all.length ? 'Nothing matches that search.' : 'No registrations yet.'), { colSpan: 7 }));
+    trs.push(tr);
+  }
+  $('rows').replaceChildren(...trs);
+  setState(q ? `Showing ${shown.length} of ${all.length}` : `${all.length} registered`);
+}
+
+async function load() {
+  setState('Loading…');
+  try {
+    // A 401 here makes the browser show its own password prompt; once accepted,
+    // the CSV link reuses the same sign-in.
+    const res = await fetch('/api/export?format=json', { cache: 'no-store' });
+    if (res.status === 401) return setState('Wrong password, or sign-in was cancelled. Reload the page to try again.', 'bad');
+    if (!res.ok) throw new Error(res.status);
+    all = await res.json();
+    renderTotals();
+    renderRows();
+  } catch {
+    setState("Couldn't load registrations. Check your connection and refresh.", 'bad');
+  }
+}
+
+$('q').addEventListener('input', renderRows);
+$('refresh').addEventListener('click', load);
+load();
+</script>
+</body>
+</html>

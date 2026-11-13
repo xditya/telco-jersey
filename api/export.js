@@ -3,8 +3,9 @@ import { db, toCsv } from './_shared.js';
 
 const digest = (s) => createHash('sha256').update(s).digest();
 
-// Admin-only CSV download. The browser's own Basic-auth prompt asks for the password
-// (any username); it is checked against the ADMIN_PASSWORD env var.
+// Admin-only: CSV download, or JSON with ?format=json for the admin page. The browser's
+// own Basic-auth prompt asks for the password (any username); it is checked against
+// the ADMIN_PASSWORD env var.
 export async function GET(request) {
   const expected = process.env.ADMIN_PASSWORD;
   const header = request.headers.get('authorization') ?? '';
@@ -24,6 +25,9 @@ export async function GET(request) {
            to_char(created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS submitted,
            to_char(updated_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS edited
     FROM entries ORDER BY jersey_number`;
+  if (new URL(request.url).searchParams.get('format') === 'json') {
+    return Response.json(rows, { headers: { 'Cache-Control': 'no-store' } });
+  }
   const csv = toCsv([
     ['UID', 'Name', 'Size', 'Name on jersey', 'Number', 'Submitted (IST)', 'Last edited (IST)'],
     ...rows.map((r) => [r.uid, r.name, r.size, r.jersey_name, r.jersey_number, r.submitted, r.edited]),
